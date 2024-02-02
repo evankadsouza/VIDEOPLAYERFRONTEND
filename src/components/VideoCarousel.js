@@ -7,7 +7,7 @@ import Vid3 from "./videos/vid3.mp4";
 import ReactPlayer from "react-player";
 import "bootstrap/dist/css/bootstrap.css";
 import { useState, useRef, useEffect } from 'react';
-import Controls from './Controls.jsx';
+// import Controls from './Controls.jsx';
 import { formatTime } from "./format";
 
 
