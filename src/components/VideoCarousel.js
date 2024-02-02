@@ -80,8 +80,9 @@ console.log(currentTime);
                 ref={videoPlayerRef}
                 url={videoObj.src}
                 playing={playing}
+                controls={true}
               />
-               <Controls onPlayPause={playPauseHandler} playing={playing}/>            
+                  {/*<Controls onPlayPause={playPauseHandler} playing={playing}/> */}           
             </Carousel.Item>
           );
         })}
