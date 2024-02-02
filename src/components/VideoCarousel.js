@@ -1,97 +1,176 @@
 import "./VideoCarousel.css";
-import React from "react";
+import React, { useEffect } from "react";
 import { Carousel } from "react-bootstrap";
-import Vid1 from "./videos/vid1.mp4";
-import Vid2 from "./videos/vid2.mp4";
-import Vid3 from "./videos/vid3.mp4";
-import ReactPlayer from "react-player";
 import "bootstrap/dist/css/bootstrap.css";
-import { useState, useRef, useEffect } from 'react';
-// import Controls from './Controls.jsx';
-import { formatTime } from "./format";
-
+import { useState, useRef } from 'react';
 
 const VideoCarousel = () => {
-  
-const [videoState, setVideoState] = useState({
-  playing: true,
-  muted: false,
-  volume: 0.5,
-  played: 0,
-  seeking: false,
-  Buffer : true
-});
-const videoPlayerRef = useRef(null);//to get the live video time
+  const [currentVideo, setCurrentVideo] = useState({});
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef();
+  const currentTimeButtonRef = useRef(null);
 
+  const fetchCurrentVideo = async () => {
+    const response = await fetch('http://localhost:8001/api/current-video');
+    const data = await response.json();
+    setCurrentVideo(data);
+  };
 
-const currentTime = videoPlayerRef.current
-    ? videoPlayerRef.current.getCurrentTime()
-    : "00:00";
-  const duration = videoPlayerRef.current
-    ? videoPlayerRef.current.getDuration()
-    : "00:00";
-
-  const formatCurrentTime = formatTime(currentTime);
-  const formatDuration = formatTime(duration);
-
-
-//Destructuring the properties from the videoState, assigning to variables 
-const {playing} = videoState
-
-
-
-const playPauseHandler = () => {
-  //plays and pause the video (toggling)
-  setVideoState({ ...videoState, playing: !videoState.playing });//false/true depending on play/pause
-  // currentTime = videoPlayerRef.current.getCurrentTime();
-  
+const handleNext = () => {
+  savePlaybackPosition();
+  fetch('http://localhost:8001/api/next-video')
+    .then(response => response.json())
+    .then(data => {
+      setCurrentVideo(data);
+      setTimeout(() => {
+        currentTimeButtonRef.current.click();
+        console.log("Auto calling")
+      
+      }, 1000);
+    })
+    .catch(error => console.error('Error fetching next video', error));
 };
-console.log(currentTime);
+
+const handlePrevious = () => {
+  savePlaybackPosition();
+  fetch('http://localhost:8001/api/previous-video')
+    .then(response => response.json())
+    .then(data => {
+      setCurrentVideo(data);
+      setTimeout(() => {
+        currentTimeButtonRef.current.click();
+        console.log("Auto calling")
+      }, 1000);
+    })
+    .catch(error => console.error('Error fetching previous video', error));
+};
 
 
-  const videoProperties = [//hard coded data
-    {
-      id: 1,
-      title: "Video 1",
-      src: Vid1,
-      credit: "Video by cottonbro from Pexels",
-    },
-    {
-      id: 2,
-      title: "Video 2",
-      src: Vid2,
-      credit: "Video by cottonbro from Pexels",
-    },
-    {
-      id: 3,
-      title: "Video 3",
-      src: Vid3,
-      credit: "Video by cottonbro from Pexels",
-    },
-  ];
+const handleTimeUpdate = () => {
+  const currentTime = videoRef.current.currentTime;
+  const duration = videoRef.current.duration;
+
+  setCurrentTime(currentTime <= duration ? currentTime : duration);
+};
+
+const getCurrentTime = () => {
+  const currentTime = videoRef.current.currentTime;
+  const duration = videoRef.current.duration;
+
+  const seekTime = currentVideo.currentTime;
+  const newTime = Math.min(seekTime, duration);
+
+  videoRef.current.currentTime = newTime <= duration ? newTime : duration;
+};
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    window.parent.postMessage({ type: 'videoState', isPlaying: true }, '*');
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    window.parent.postMessage({ type: 'videoState', isPlaying: false }, '*');
+    
+    fetch('http://localhost:8001/api/current-video')
+      .then(response => response.json())
+      .then(data => {
+        fetch('http://localhost:8001/api/update-video-state', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            video_id: data.video_id,
+            state: 'false',
+            currentTime: videoRef.current.currentTime,
+          }),
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log('Video state updated successfully:', result);
+        })
+        .catch(error => {
+          console.error('Error updating video state:', error);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching current video:', error);
+      });
+  };
+
+  const savePlaybackPosition = () => {
+    if (currentVideo.video_id) {
+      localStorage.setItem(`video_${currentVideo.video_id}`, JSON.stringify({ currentTime, isPlaying }));
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentVideo();
+  }, [currentVideo.video_id]);
+
+ useEffect(() => {
+    const storedData = localStorage.getItem(`video_${currentVideo.video_id}`);
+    if (storedData) {
+      const { currentTime: storedTime, isPlaying: storedPlaying } = JSON.parse(storedData);
+      setCurrentTime(storedTime || 0);
+      setIsPlaying(storedPlaying || false);
+    } else {
+      setCurrentTime(0);
+      setIsPlaying(false);
+    }
+  }, [currentVideo.video_id]);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+      }
+    };
+  }, [videoRef]);
+
+  const formatTime = seconds => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+  };
 
   return (
     <div className="App">
       <Carousel>
-        {videoProperties.map((videoObj) => {
-          return (
-            <Carousel.Item key={videoObj.id}>
-              <ReactPlayer
-                ref={videoPlayerRef}
-                url={videoObj.src}
-                playing={playing}
-                controls={true}
-              />
-                  {/*<Controls onPlayPause={playPauseHandler} playing={playing}/> */}           
+        
+            <Carousel.Item key={currentVideo.id}>
+              <video
+              preload="auto" 
+              autoPlay={false}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onEnded={handleNext}
+             ref={videoRef}
+              controls={true}
+              src={currentVideo.video} 
+             />
             </Carousel.Item>
-          );
-        })}
+
+   
       </Carousel>
-      
+
+      <div>
+        <p>Elapsed Time: {formatTime(Math.floor(currentTime))}</p>
+        {/* <button ref={currentTimeButtonRef} onClick={getCurrentTime}> Get Current Time </button> */}
+      </div>
+
+            <button onClick={handlePrevious}>Previous Video</button>
+      <button onClick={handleNext}>Next Video</button>
     </div>
+
+    
   );
 };
-
-
 
 export default VideoCarousel;
