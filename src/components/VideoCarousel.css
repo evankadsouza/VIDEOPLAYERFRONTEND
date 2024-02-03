@@ -9,6 +9,10 @@
   opacity: 0 !important;
   
 }
+
+.carousel-indicators .active {
+  opacity: 0 !important;
+}
 .carousel-control-next {
   height: 300px;
   opacity: 0 !important;
