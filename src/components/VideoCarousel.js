@@ -162,11 +162,11 @@ const getCurrentTime = () => {
         <button style={{display:'none'}} ref={currentTimeButtonRef} onClick={getCurrentTime}> Get Current Time </button>
       </div>
 
-      <button onClick={handlePrevious}>Previous Video</button>
-      <button onClick={handleNext}>Next Video</button>
+      <button onClick={handlePrevious}><a class="previous">&laquo;</a></button>
+      <button onClick={handleNext}><a class="next">&raquo;</a>
     </div>
 
-    
+     
   );
 };
 
