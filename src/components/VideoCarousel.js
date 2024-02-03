@@ -162,10 +162,10 @@ const getCurrentTime = () => {
 
       <div>
         <p>Elapsed Time: {formatTime(Math.floor(currentTime))}</p>
-        {/* <button ref={currentTimeButtonRef} onClick={getCurrentTime}> Get Current Time </button> */}
+        <button style={{display:'none'}} ref={currentTimeButtonRef} onClick={getCurrentTime}> Get Current Time </button>
       </div>
 
-            <button onClick={handlePrevious}>Previous Video</button>
+      <button onClick={handlePrevious}>Previous Video</button>
       <button onClick={handleNext}>Next Video</button>
     </div>
 
