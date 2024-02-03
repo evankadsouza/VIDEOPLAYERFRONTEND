@@ -55,7 +55,7 @@ const handleTimeUpdate = () => {
 };
 
 const getCurrentTime = () => {
-  const currentTime = videoRef.current.currentTime;
+  // const currentTime = videoRef.current.currentTime;
   const duration = videoRef.current.duration;
 
   const seekTime = currentVideo.currentTime;
@@ -143,7 +143,6 @@ const getCurrentTime = () => {
   return (
     <div className="App">
       <Carousel>
-        
             <Carousel.Item key={currentVideo.id}>
               <video
               preload="auto" 
@@ -151,13 +150,11 @@ const getCurrentTime = () => {
               onPlay={handlePlay}
               onPause={handlePause}
               onEnded={handleNext}
-             ref={videoRef}
+              ref={videoRef}
               controls={true}
               src={currentVideo.video} 
              />
             </Carousel.Item>
-
-   
       </Carousel>
 
       <div>
