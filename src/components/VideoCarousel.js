@@ -12,14 +12,14 @@ const VideoCarousel = () => {
   const currentTimeButtonRef = useRef(null);
 
   const fetchCurrentVideo = async () => {
-    const response = await fetch('http://localhost:8001/api/current-video');
+    const response = await fetch('http://62.72.59.146:8002/api/current-video');
     const data = await response.json();
     setCurrentVideo(data);
   };
 
 const handleNext = () => {
   savePlaybackPosition();
-  fetch('http://localhost:8001/api/next-video')
+  fetch('http://62.72.59.146:8002/api/next-video')
     .then(response => response.json())
     .then(data => {
       setCurrentVideo(data);
@@ -34,7 +34,7 @@ const handleNext = () => {
 
 const handlePrevious = () => {
   savePlaybackPosition();
-  fetch('http://localhost:8001/api/previous-video')
+  fetch('http://62.72.59.146:8002/api/previous-video')
     .then(response => response.json())
     .then(data => {
       setCurrentVideo(data);
@@ -73,10 +73,10 @@ const getCurrentTime = () => {
     setIsPlaying(false);
     window.parent.postMessage({ type: 'videoState', isPlaying: false }, '*');
     
-    fetch('http://localhost:8001/api/current-video')
+    fetch('http://62.72.59.146:8002/api/current-video')
       .then(response => response.json())
       .then(data => {
-        fetch('http://localhost:8001/api/update-video-state', {
+        fetch('http://62.72.59.146:8002/api/update-video-state', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
